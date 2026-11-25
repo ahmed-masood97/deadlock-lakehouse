@@ -185,3 +185,15 @@ The full reasoning is in [`docs/design.md`](docs/design.md), with short records 
 Live data comes from [deadlock-api.com](https://deadlock-api.com), a community project that collects public match data. This project is not affiliated with or endorsed by Valve or deadlock-api.com. Hero and item names are the game's. The synthetic generator's ids, balance numbers and outcomes are made up.
 
 Built by **Ahmed Masood** · [LinkedIn](https://www.linkedin.com/in/syedmasood97)
+
+---
+
+## About me
+
+I'm **Ahmed Masood**, an Analytics Engineer at Lean Layer. I build the data models, pipelines and reporting that analytics and revenue teams rely on, and this project is where I go deeper into data engineering with Scala and Spark.
+
+Outside of work I'm a music lover, producer and DJ. I make and play music, and I care about how a set or a track is built, the same way I care about how a dataset is built.
+
+I'm also a high-skill gamer. I play **Dota 2**, **Counter-Strike 2** and **Deadlock** at a high skill level, which is where the idea for this project came from: Deadlock produces a lot of match data, and I wanted to model it the way I'd model real business data.
+
+Find me on [LinkedIn](https://linkedin.com/in/syedmasood97).
