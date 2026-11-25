@@ -1,0 +1,27 @@
+# Source contract: patch notes feed from GET /v1/patches (RSS from the official forum).
+# Free-text, enterprise-app-like source: few guarantees, so the contract is deliberately small.
+name: patches
+version: 1
+owner: data-eng (Ahmed Masood)
+description: One record per published patch note.
+grain: patch
+primary_key: [guid.text]
+freshness_sla_hours: 720
+evolution: additive
+
+fields:
+  - { name: title,    type: string, required: true }
+  - { name: pub_date, type: string, required: true, description: "RFC 3339 timestamp" }
+  - { name: link,     type: string }
+  - { name: author,   type: string }
+  - name: guid
+    type: struct
+    required: true
+    fields:
+      - { name: is_perma_link, type: boolean }
+      - { name: text,          type: string, required: true }
+  - name: category
+    type: struct
+    fields:
+      - { name: domain, type: string }
+      - { name: text,   type: string }

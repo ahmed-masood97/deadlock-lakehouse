@@ -1,0 +1,28 @@
+# Source contract: hero reference data from GET /v1/assets/heroes.
+# The endpoint returns the *current* state only, so the pipeline snapshots it on every run
+# and builds history itself (gold.dim_hero is SCD Type 2).
+name: heroes
+version: 1
+owner: data-eng (Ahmed Masood)
+description: One record per hero as currently defined in the game files.
+grain: hero
+primary_key: [id]
+freshness_sla_hours: 170
+evolution: additive
+
+fields:
+  - { name: id,                type: int,     required: true }
+  - { name: class_name,        type: string,  required: true }
+  - { name: name,              type: string,  required: true }
+  - { name: hero_type,         type: string }
+  - { name: complexity,        type: int,     min: 1, max: 3 }
+  - { name: player_selectable, type: boolean }
+  - { name: disabled,          type: boolean }
+  - { name: in_development,    type: boolean }
+  - name: starting_stats
+    type: struct
+    fields:
+      - name: max_health
+        type: struct
+        fields:
+          - { name: value, type: double }

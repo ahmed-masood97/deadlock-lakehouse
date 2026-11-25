@@ -1,0 +1,77 @@
+# Pipeline configuration.
+#
+# Onboarding a new source = add one block under `sources` + one contract file in
+# contracts/. No new ingestion code is needed for the two supported kinds:
+#   paged_ndjson  - watermarked, paginated endpoint that returns NDJSON (match metadata)
+#   json_snapshot - endpoint that returns the full current state as a JSON array (heroes, items, patches)
+
+catalog:
+  name: lake
+  type: hadoop                      # hadoop (local dev) | rest | glue | hive
+  warehouse: ./lakehouse/warehouse  # s3://bucket/warehouse in production
+  # uri: http://localhost:8181      # required for type=rest / hive
+
+landing_dir: ./lakehouse/landing
+contracts_dir: ./contracts
+
+# Steam account ids are hashed (salted SHA-256) before they reach the gold layer.
+# The salt is read from this environment variable; a dev default is used locally.
+player_hash_salt_env: DEADLOCK_PLAYER_SALT
+
+spark:
+  shuffle_partitions: 8             # sized for local runs; raise on a cluster (AQE coalesces anyway)
+
+quality:
+  block_publish_on: error           # error | warn: which failed severity blocks a WAP publish
+
+sources:
+  - name: matches
+    kind: paged_ndjson
+    contract: matches.v1.yaml
+    bronze_table: bronze.raw_matches
+    record_key: "$.match_id"
+    event_time: "$.start_time"
+    api:
+      base_url: https://api.deadlock-api.com
+      endpoint: /v1/matches/metadata
+      watermark_param: min_match_id
+      page_size: 1000
+      max_pages: 25
+      params:
+        include_info: "true"
+        include_player_info: "true"
+        include_player_items: "true"
+        include_player_final_stats: "true"
+        match_mode: "ranked,unranked"
+        game_mode: normal
+        order_by: match_id
+        order_direction: asc
+        format: ndjson
+
+  - name: heroes
+    kind: json_snapshot
+    contract: heroes.v1.yaml
+    bronze_table: bronze.raw_heroes
+    record_key: "$.id"
+    api:
+      base_url: https://api.deadlock-api.com
+      endpoint: /v1/assets/heroes
+
+  - name: items
+    kind: json_snapshot
+    contract: items.v1.yaml
+    bronze_table: bronze.raw_items
+    record_key: "$.id"
+    api:
+      base_url: https://api.deadlock-api.com
+      endpoint: /v1/assets/items
+
+  - name: patches
+    kind: json_snapshot
+    contract: patches.v1.yaml
+    bronze_table: bronze.raw_patches
+    record_key: "$.guid.text"
+    event_time: "$.pub_date"
+    api:
+      base_url: https://api.deadlock-api.com
+      endpoint: /v1/patches

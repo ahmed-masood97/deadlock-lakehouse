@@ -1,0 +1,22 @@
+# Source contract: item reference data from GET /v1/assets/items.
+# Item costs change between patches; gold.dim_item keeps every version (SCD Type 2) so that
+# purchases are always valued at the price that applied when the match was played.
+name: items
+version: 1
+owner: data-eng (Ahmed Masood)
+description: One record per item (shop upgrades, weapons and abilities) as currently defined.
+grain: item
+primary_key: [id]
+freshness_sla_hours: 170
+evolution: additive
+
+fields:
+  - { name: id,             type: long,    required: true }
+  - { name: class_name,     type: string,  required: true }
+  - { name: name,           type: string,  required: true }
+  - { name: type,           type: string,  required: true, accepted: [upgrade, ability, weapon] }
+  - { name: item_slot_type, type: string,  accepted: [weapon, spirit, vitality] }
+  - { name: item_tier,      type: int,     min: 1, max: 5 }
+  - { name: cost,           type: long,    min: 0 }
+  - { name: shopable,       type: boolean }
+  - { name: disabled,       type: boolean }

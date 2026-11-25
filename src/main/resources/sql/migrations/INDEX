@@ -1,0 +1,6 @@
+V001__ops_tables.sql
+V002__bronze_tables.sql
+V003__silver_tables.sql
+V004__gold_dimensions.sql
+V005__gold_facts_and_marts.sql
+V006__evolve_player_match.sql

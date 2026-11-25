@@ -1,0 +1,83 @@
+# Source contract: match metadata from GET /v1/matches/metadata (deadlock-api.com).
+#
+# A contract is the agreement between the producer (the API) and this pipeline:
+#   - the schema we parse (types, nesting)
+#   - which fields are required and what values are valid
+#   - the grain and primary key, used for dedup and uniqueness checks
+#   - how schema changes are treated (evolution policy)
+# Records that break the contract are routed to silver.quarantine with a reason;
+# they never silently disappear and never block the good records.
+
+name: matches
+version: 1
+owner: data-eng (Ahmed Masood)
+description: One record per completed Deadlock match, with players, item purchases and end-of-match stats.
+grain: match
+primary_key: [match_id]
+freshness_sla_hours: 26
+evolution: additive        # new fields are logged to ops.schema_drift; missing required fields / bad types are quarantined
+
+fields:
+  - { name: match_id,            type: long,    required: true }
+  - { name: start_time,          type: string,  required: true, format: "yyyy-MM-dd HH:mm:ss", description: "UTC start time" }
+  - { name: duration_s,          type: int,     required: true, min: 60, max: 7000 }
+  - { name: winning_team,        type: string,  required: true, accepted: [Team0, Team1] }
+  - { name: match_outcome,       type: string,  accepted: [TeamWin, Error, Draw] }
+  - { name: match_mode,          type: string,  accepted: [Unranked, PrivateLobby, CoopBot, Ranked, ServerTest, Tutorial, HeroLabs, NewPlayerPlacement] }
+  - { name: game_mode,           type: string,  accepted: [Normal, OneVsOneTest, Sandbox, StreetBrawl] }
+  - { name: average_badge_team0, type: int }
+  - { name: average_badge_team1, type: int }
+  - { name: not_scored,          type: boolean }
+  - { name: banned_hero_ids,     type: "array<int>" }
+  - name: players
+    type: array
+    required: true
+    min_items: 2
+    max_items: 12
+    fields:
+      - { name: account_id,           type: long,   required: true, pii: true, description: "Steam account id; hashed before gold" }
+      - { name: player_slot,          type: int,    required: true }
+      - { name: hero_id,              type: int,    required: true }
+      - { name: team,                 type: string, required: true, accepted: [Team0, Team1] }
+      - { name: kills,                type: int,    min: 0 }
+      - { name: deaths,               type: int,    min: 0 }
+      - { name: assists,              type: int,    min: 0 }
+      - { name: net_worth,            type: int,    min: 0 }
+      - { name: last_hits,            type: int }
+      - { name: denies,               type: int }
+      - { name: ability_points,       type: int }
+      - { name: assigned_lane,        type: int }
+      - { name: player_level,         type: int }
+      - { name: abandon_match_time_s, type: int }
+      - { name: mvp_rank,             type: int }
+      - { name: hero_build_id,        type: long }
+      - name: items
+        type: array
+        fields:
+          - { name: game_time_s,       type: int }
+          - { name: item_id,           type: long }
+          - { name: upgrade_id,        type: long }
+          - { name: sold_time_s,       type: int }
+          - { name: flags,             type: int }
+          - { name: imbued_ability_id, type: long }
+      - name: final_stats
+        type: struct
+        fields:
+          - { name: net_worth,               type: long }
+          - { name: gold_player,             type: long }
+          - { name: gold_player_orbs,        type: long }
+          - { name: gold_lane_creep,         type: long }
+          - { name: gold_lane_creep_orbs,    type: long }
+          - { name: gold_neutral_creep,      type: long }
+          - { name: gold_neutral_creep_orbs, type: long }
+          - { name: gold_boss,               type: long }
+          - { name: gold_boss_orb,           type: long }
+          - { name: gold_treasure,           type: long }
+          - { name: gold_denied,             type: long }
+          - { name: gold_death_loss,         type: long }
+          - { name: player_damage,           type: long }
+          - { name: player_healing,          type: long }
+          - { name: boss_damage,             type: long }
+          - { name: creep_damage,            type: long }
+          - { name: shots_hit,               type: long }
+          - { name: shots_missed,            type: long }
